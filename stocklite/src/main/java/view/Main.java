@@ -26,36 +26,51 @@ public class Main extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        btHome = new javax.swing.JLabel();
-        btHome1 = new javax.swing.JLabel();
-        btHome2 = new javax.swing.JLabel();
+        fornecedora = new javax.swing.JLabel();
+        transportadora = new javax.swing.JLabel();
+        estoque = new javax.swing.JLabel();
+        auditoria = new javax.swing.JLabel();
+        funcionario = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        btHome.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        btHome.setForeground(new java.awt.Color(102, 102, 102));
-        btHome.setText("Fornecedor");
-        btHome.addMouseListener(new java.awt.event.MouseAdapter() {
+        fornecedora.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        fornecedora.setForeground(new java.awt.Color(102, 102, 102));
+        fornecedora.setText("Fornecedor");
+        fornecedora.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btHomeMouseClicked(evt);
+                fornecedoraMouseClicked(evt);
             }
         });
 
-        btHome1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        btHome1.setForeground(new java.awt.Color(102, 102, 102));
-        btHome1.setText("Transportadora");
-        btHome1.addMouseListener(new java.awt.event.MouseAdapter() {
+        transportadora.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        transportadora.setForeground(new java.awt.Color(102, 102, 102));
+        transportadora.setText("Transportadora");
+        transportadora.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btHome1MouseClicked(evt);
+                transportadoraMouseClicked(evt);
             }
         });
 
-        btHome2.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        btHome2.setForeground(new java.awt.Color(102, 102, 102));
-        btHome2.setText("Estoque");
-        btHome2.addMouseListener(new java.awt.event.MouseAdapter() {
+        estoque.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        estoque.setForeground(new java.awt.Color(102, 102, 102));
+        estoque.setText("Estoque");
+        estoque.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btHome2MouseClicked(evt);
+                estoqueMouseClicked(evt);
+            }
+        });
+
+        auditoria.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        auditoria.setForeground(new java.awt.Color(102, 102, 102));
+        auditoria.setText("Funcionarios");
+
+        funcionario.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        funcionario.setForeground(new java.awt.Color(102, 102, 102));
+        funcionario.setText("Auditoria");
+        funcionario.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                funcionarioMouseClicked(evt);
             }
         });
 
@@ -66,46 +81,60 @@ public class Main extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(34, 34, 34)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btHome2)
-                    .addComponent(btHome1)
-                    .addComponent(btHome))
+                    .addComponent(estoque)
+                    .addComponent(transportadora)
+                    .addComponent(fornecedora))
                 .addContainerGap(614, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(funcionario)
+                    .addComponent(auditoria))
+                .addGap(34, 34, 34))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(30, 30, 30)
-                .addComponent(btHome)
+                .addComponent(fornecedora)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btHome1)
+                .addComponent(transportadora)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btHome2)
-                .addContainerGap(328, Short.MAX_VALUE))
+                .addComponent(estoque)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 242, Short.MAX_VALUE)
+                .addComponent(funcionario)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(auditoria)
+                .addGap(30, 30, 30))
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btHomeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btHomeMouseClicked
-        FornecedorView.getForn().setVisible(true);  
-    }//GEN-LAST:event_btHomeMouseClicked
+    private void fornecedoraMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fornecedoraMouseClicked
+        FornecedoraView.getForn().setVisible(true);  
+    }//GEN-LAST:event_fornecedoraMouseClicked
 
-    private void btHome1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btHome1MouseClicked
+    private void transportadoraMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_transportadoraMouseClicked
         try {
             TransportadoraView.getTransp().mostrar();
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_btHome1MouseClicked
+    }//GEN-LAST:event_transportadoraMouseClicked
 
-    private void btHome2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btHome2MouseClicked
+    private void estoqueMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_estoqueMouseClicked
         try {
             EstoqueView.getEsto().mostrar();
         } catch (ClassNotFoundException | ParseException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_btHome2MouseClicked
+    }//GEN-LAST:event_estoqueMouseClicked
+
+    private void funcionarioMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_funcionarioMouseClicked
+        AuditoriaView.getAudi().mostrar();
+    }//GEN-LAST:event_funcionarioMouseClicked
 
     /**
      * @param args the command line arguments
@@ -144,8 +173,10 @@ public class Main extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel btHome;
-    private javax.swing.JLabel btHome1;
-    private javax.swing.JLabel btHome2;
+    private javax.swing.JLabel auditoria;
+    private javax.swing.JLabel estoque;
+    private javax.swing.JLabel fornecedora;
+    private javax.swing.JLabel funcionario;
+    private javax.swing.JLabel transportadora;
     // End of variables declaration//GEN-END:variables
 }

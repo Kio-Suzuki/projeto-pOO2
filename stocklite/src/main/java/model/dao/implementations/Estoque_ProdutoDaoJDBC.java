@@ -1,5 +1,4 @@
 package model.dao.implementations;
-import aux.Pair;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -11,7 +10,6 @@ import java.util.List;
 
 import db.DB;
 import db.DbException;
-import java.sql.Statement;
 import model.dao.Estoque_ProdutoDao;
 import model.entities.Estoque_Produto;
 
@@ -24,23 +22,28 @@ public class Estoque_ProdutoDaoJDBC implements Estoque_ProdutoDao{
     };
 
     @Override
-    public void insert(Estoque_Produto obj, int id){
+    public void insert(Estoque_Produto obj, int id) {
         PreparedStatement st = null;
-        try{
-            st = conn.prepareStatement(
-            "SELECT add_produto_estoque (?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+        ResultSet rs = null;
+        try {
+            st = conn.prepareStatement("SELECT add_produto_estoque (?, ?, ?, ?, ?, ?, ?, ?, ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             st.setString(1, obj.getProNome());
             st.setFloat(2, obj.getProPreco());
             st.setString(3, obj.getProCategoria());
             st.setInt(4, obj.getForId());
             st.setInt(5, obj.getEstQuantidade());
             st.setString(6, obj.getEstLocal());
-            st.setDate(7, new java.sql.Date(obj.getEstDataEntrada().getDate()));
-            st.setDate(8, new java.sql.Date(obj.getEstDataValidade().getDate()));
+            st.setDate(7, new java.sql.Date(obj.getEstDataEntrada().getTime()));
+            st.setDate(8, new java.sql.Date(obj.getEstDataValidade().getTime()));
             st.setInt(9, id);
-        }catch(SQLException e){
-            throw new DbException(e.getMessage());
-        }finally{
+
+            st.execute();
+
+            rs = st.getGeneratedKeys();
+        } catch (SQLException e) {
+            throw new DbException("Erro ao cadastrar produto: " + e.getMessage());
+        } finally {
+            DB.closeResultSet(rs);
             DB.closeStatement(st);
         }
     }
@@ -49,19 +52,20 @@ public class Estoque_ProdutoDaoJDBC implements Estoque_ProdutoDao{
         PreparedStatement st =null;
         try{
             st = conn.prepareStatement(
-            "SELECT upd_produto_estoque(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.NO_GENERATED_KEYS);
-            st.setString(1, obj.getProNome());
-            st.setFloat(2, obj.getProPreco());
-            st.setString(3, obj.getProCategoria());
-            st.setInt(4, obj.getForId());
-            st.setInt(5, obj.getEstQuantidade());
-            st.setString(6, obj.getEstLocal());
-            st.setDate(7,(Date) obj.getEstDataEntrada());
-            st.setDate(8,(Date) obj.getEstDataValidade());
-            st.setDate(9, (Date) obj.getOrigemDataEntrada());
-            st.setDate(10, (Date) obj.getOrigemDataValidade());
-            st.setInt(11, id);
-            st.executeUpdate();
+            "SELECT upd_produto_estoque(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.NO_GENERATED_KEYS);
+            st.setInt(1, obj.getProId());
+            st.setString(2, obj.getProNome());
+            st.setFloat(3, obj.getProPreco());
+            st.setString(4, obj.getProCategoria());
+            st.setInt(5, obj.getForId());
+            st.setInt(6, obj.getEstQuantidade());
+            st.setString(7, obj.getEstLocal());
+            st.setDate(8,new java.sql.Date(obj.getEstDataEntrada().getTime()));
+            st.setDate(9,new java.sql.Date(obj.getEstDataValidade().getTime()));
+            st.setDate(10, new java.sql.Date(obj.getOrigemDataEntrada().getTime()));
+            st.setDate(11, new java.sql.Date(obj.getOrigemDataValidade().getTime()));
+            st.setInt(12, id);
+            st.execute();
         } catch(SQLException e){
             throw new DbException(e.getMessage());
         } finally{
@@ -73,12 +77,12 @@ public class Estoque_ProdutoDaoJDBC implements Estoque_ProdutoDao{
     public void delete(Estoque_Produto obj, int id){
         PreparedStatement st = null;
         try{
-            st = conn.prepareStatement("CALL del_produto_estoque(?, ?, ?, ?)");
+            st = conn.prepareStatement("SELECT delete_produto_estoque(?, ?, ?, ?)");
             st.setInt(1, obj.getProId());
-            st.setDate(2, (Date) obj.getOrigemDataEntrada());
-            st.setDate(3, (Date) obj.getOrigemDataValidade());
+            st.setDate(2, new java.sql.Date(obj.getOrigemDataEntrada().getTime()));
+            st.setDate(3, new java.sql.Date(obj.getOrigemDataValidade().getTime()));
             st.setInt(4, id);
-            st.executeUpdate();
+            st.execute();
         }catch(SQLException e){
             throw new DbException(e.getMessage());
         }finally{
@@ -107,12 +111,28 @@ public class Estoque_ProdutoDaoJDBC implements Estoque_ProdutoDao{
             DB.closeResultSet(rs);
         }
     };
+    @Override
+    public Estoque_Produto findById(Estoque_Produto obj) {
+      try (PreparedStatement st = conn.prepareStatement("SELECT * FROM ver_estoque_produto WHERE estId = ?")) {
+            st.setInt(1, obj.getEstId());
+
+            try (ResultSet rs = st.executeQuery()) {
+                if (rs.next()) {
+                    return pegaInfo(rs);
+                }
+            }
+        } catch (SQLException e) {
+            throw new DbException("Erro ao buscar por ID: " + e.getMessage());
+        }
+        return null;
+    }
+
 
 
 
     public Estoque_Produto pegaInfo(ResultSet rs) throws SQLException {
         Estoque_Produto estoque = new Estoque_Produto();
-        estoque.setProId(rs.getInt("produto_id"));
+        estoque.setEstId(rs.getInt("estid"));
         estoque.setProNome(rs.getString("proNome"));
         estoque.setProPreco(rs.getFloat("proPreco"));
         estoque.setProCategoria(rs.getString("proCategoria"));
@@ -121,6 +141,7 @@ public class Estoque_ProdutoDaoJDBC implements Estoque_ProdutoDao{
         estoque.setEstLocal(rs.getString("estLocal"));
         estoque.setEstDataEntrada(rs.getDate("estDataEntrada"));
         estoque.setEstDataValidade(rs.getDate("estDataValidade"));
+        estoque.setProId(rs.getInt("produto_id"));
 
         return estoque;
     }

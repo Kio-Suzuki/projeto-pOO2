@@ -1,5 +1,6 @@
 package model.dao.implementations;
 
+import auxiliar.Pair;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -37,6 +38,7 @@ public class TransportadoraDaoJDBC implements TransportadoraDao {
             st.setInt(7, obj.getTraCep());
             st.setString(8, obj.getTraCidade());
             st.setString(9, obj.getTraEstado());
+            
 
             int rowsAffected = st.executeUpdate();
 
@@ -147,7 +149,29 @@ public class TransportadoraDaoJDBC implements TransportadoraDao {
         }
     }
 
-    
+    @Override
+    public List<Pair<Integer, String>> findAllForCombobox() {
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        try {
+            st = conn.prepareStatement("SELECT traId, traRazaoSocial FROM transportadora");
+            rs = st.executeQuery();
+            List<Pair<Integer, String>> result = new ArrayList<>();
+
+            while (rs.next()) {
+                int id = rs.getInt("traId");
+                String nome = rs.getString("traRazaoSocial");
+                Pair<Integer, String> pair = new Pair<>(id, nome);
+                result.add(pair);
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        } finally {
+            DB.closeStatement(st);
+            DB.closeResultSet(rs);
+        }
+    }
     
     private Transportadora pegaInfo(ResultSet rs) throws SQLException {
         Transportadora transportadora = new Transportadora();

@@ -11,7 +11,6 @@ import java.util.List;
 import model.entities.Auditoria;
 import db.DB;
 import db.DbException;
-import model.entities.Auditoria;
 import model.entities.AuditoriaDao;
 
 public class AuditoriaDaoJDBC implements AuditoriaDao {
@@ -49,8 +48,10 @@ public class AuditoriaDaoJDBC implements AuditoriaDao {
         int audId = rs.getInt("audId");
         int funId = rs.getInt("funId");
         int proId = rs.getInt("proId");
+        int acao = rs.getInt("acao");
+        int quantidade = rs.getInt("quantidade");
         Date datahora = rs.getTimestamp("datahora");
 
-        return new Auditoria(audId, funId, proId, datahora);
+        return new Auditoria(audId, funId, proId, acao, quantidade, datahora);
     }
 }

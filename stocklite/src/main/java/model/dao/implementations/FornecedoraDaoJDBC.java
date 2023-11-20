@@ -1,6 +1,6 @@
 package model.dao.implementations;
 
-import aux.Pair;
+import auxiliar.Pair;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -27,7 +27,7 @@ public class FornecedoraDaoJDBC implements FornecedoraDao {
         PreparedStatement st = null;
         try {
             st = conn.prepareStatement(
-                    "INSERT INTO Fornecedora (forCnpj, forRazaoSocial, forEmail, forTelefone, forLogradouro, forNumero, forCep, forCidade, forEstado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO Fornecedora (forCnpj, forRazaoSocial, forEmail, forTelefone, forLogradouro, forNumero, forCep, forCidade, forEstado, traId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     PreparedStatement.RETURN_GENERATED_KEYS);
 
             st.setString(1, obj.getForCnpj());
@@ -36,9 +36,10 @@ public class FornecedoraDaoJDBC implements FornecedoraDao {
             st.setString(4, obj.getForTelefone());
             st.setString(5, obj.getForLogradouro());
             st.setInt(6, obj.getForNumero());
-            st.setString(7, obj.getForCep());
+            st.setInt(7, obj.getForCep());
             st.setString(8, obj.getForCidade());
             st.setString(9, obj.getForEstado());
+            st.setInt(10,obj.getTraId());
 
             int rowsAffected = st.executeUpdate();
 
@@ -52,6 +53,7 @@ public class FornecedoraDaoJDBC implements FornecedoraDao {
                 throw new DbException("Erro inesperado! Nenhuma linha afetada!");
             }
         } catch (SQLException e) {
+            System.out.println(e.getMessage());
             throw new DbException(e.getMessage());
         } finally {
             DB.closeStatement(st);
@@ -63,17 +65,18 @@ public class FornecedoraDaoJDBC implements FornecedoraDao {
             PreparedStatement st = null;
             try {
                 st = conn.prepareStatement(
-                        "UPDATE Fornecedora SET forCnpj = COALESCE(?, forCnpj), forRazaoSocial = COALESCE(?, forRazaoSocial), forEmail = COALESCE(?, forEmail), forTelefone = COALESCE(?, forTelefone), forLogradouro = COALESCE(?, forLogradouro), forNumero = COALESCE(?, forNumero), forCep = COALESCE(?, forCep), forCidade = COALESCE(?, forCidade), forEstado = COALESCE(?, forEstado) WHERE forId = ?");
+                        "UPDATE Fornecedora SET forCnpj = COALESCE(?, forCnpj), forRazaoSocial = COALESCE(?, forRazaoSocial), forEmail = COALESCE(?, forEmail), forTelefone = COALESCE(?, forTelefone), forLogradouro = COALESCE(?, forLogradouro), forNumero = COALESCE(?, forNumero), forCep = COALESCE(?, forCep), forCidade = COALESCE(?, forCidade), forEstado = COALESCE(?, forEstado), traId=(COALESCE(?, traId) WHERE forId = ?");
                 st.setString(1, obj.getForCnpj());
                 st.setString(2, obj.getForRazaoSocial());
                 st.setString(3, obj.getForEmail());
                 st.setString(4, obj.getForTelefone());
                 st.setString(5, obj.getForLogradouro());
                 st.setInt(6, obj.getForNumero());
-                st.setString(7, obj.getForCep());
+                st.setInt(7, obj.getForCep());
                 st.setString(8, obj.getForCidade());
                 st.setString(9, obj.getForEstado());
-                st.setInt(10, obj.getForId());
+                st.setInt(10, obj.getTraId());
+                st.setInt(11, obj.getForId());
 
                 st.executeUpdate();
             } catch (SQLException e) {
@@ -147,8 +150,30 @@ public class FornecedoraDaoJDBC implements FornecedoraDao {
             DB.closeStatement(st);
             DB.closeResultSet(rs);
         }
-    }    
+    }
     
+    @Override
+    public Fornecedora findById(Fornecedora obj) {
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        try {
+            st = conn.prepareStatement("SELECT * FROM fornecedora WHERE forId = ?");
+            st.setInt(1, obj.getForId());
+
+            rs = st.executeQuery();
+
+            if (rs.next()) {
+                return pegaInfo(rs);
+            }
+
+            return null; // Retorna null se não encontrar nenhuma transportadora com o traId fornecido
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        } finally {
+            DB.closeStatement(st);
+            DB.closeResultSet(rs);
+        }
+    }
     private Fornecedora pegaInfo(ResultSet rs) throws SQLException {
         Fornecedora fornecedora = new Fornecedora();
         fornecedora.setForId(rs.getInt("forId"));
@@ -158,7 +183,7 @@ public class FornecedoraDaoJDBC implements FornecedoraDao {
         fornecedora.setForTelefone(rs.getString("forTelefone"));
         fornecedora.setForLogradouro(rs.getString("forLogradouro"));
         fornecedora.setForNumero(rs.getInt("forNumero"));
-        fornecedora.setForCep(rs.getString("forCep"));
+        fornecedora.setForCep(rs.getInt("forCep"));
         fornecedora.setForCidade(rs.getString("forCidade"));
         fornecedora.setForEstado(rs.getString("forEstado"));
         return fornecedora;

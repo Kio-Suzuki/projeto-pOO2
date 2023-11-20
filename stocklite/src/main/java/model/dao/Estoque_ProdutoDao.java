@@ -9,5 +9,6 @@ public interface Estoque_ProdutoDao {
     void update(Estoque_Produto obj, int id);
     void delete(Estoque_Produto obj, int id);
     List<Estoque_Produto>findAll();
+    Estoque_Produto findById(Estoque_Produto obj);
 }
 

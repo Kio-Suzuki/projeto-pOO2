@@ -6,15 +6,19 @@ public class Auditoria {
     private int audId;
     private int funId;
     private int proId;
+    private int acao;
+    private int quantidade;
     private Date datahora;
-    
+
     public Auditoria() {
     }
-    
-    public Auditoria(int audId, int funId, int proId, Date datahora) {
+
+    public Auditoria(int audId, int funId, int proId, int acao, int quantidade, Date datahora) {
         this.audId = audId;
         this.funId = funId;
         this.proId = proId;
+        this.acao = acao;
+        this.quantidade = quantidade;
         this.datahora = datahora;
     }
 
@@ -42,6 +46,22 @@ public class Auditoria {
         this.proId = proId;
     }
 
+    public int getAcao() {
+        return acao;
+    }
+
+    public void setAcao(int acao) {
+        this.acao = acao;
+    }
+
+    public int getQuantidade() {
+        return quantidade;
+    }
+
+    public void setQuantidade(int quantidade) {
+        this.quantidade = quantidade;
+    }
+
     public Date getDatahora() {
         return datahora;
     }
@@ -52,8 +72,11 @@ public class Auditoria {
 
     @Override
     public String toString() {
-        return "Auditoria [audId=" + audId + ", funId=" + funId + ", proId=" + proId + ", datahora=" + datahora + "]";
+        return "Auditoria [audId=" + audId + ", funId=" + funId + ", proId=" + proId + ", acao=" + acao
+                + ", quantidade=" + quantidade + ", datahora=" + datahora + "]";
     }
-
+    
+    
+    
     
 }

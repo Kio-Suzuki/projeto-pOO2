@@ -35,7 +35,7 @@ public class FuncionarioDaoJDBC implements FuncionarioDao {
                 if (senha.compareTo("bancoadmin")==0) {
                     return id;
                 } else {
-                    return -1;
+                    return 0;
                 }
 
             }

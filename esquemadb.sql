@@ -1,49 +1,3 @@
-do $$
-declare
-    table_name text;
-
-function_name text;
-
-trigger_name text;
-
-begin
--- Dropping all tables
-    for table_name in (
-select
-	information_schema.tables.table_name
-from
-	information_schema.tables
-where
-	information_schema.tables.table_schema = 'public'
-	and information_schema.tables.table_type = 'BASE TABLE')
-    loop
-        execute 'DROP TABLE IF EXISTS public.' || table_name || ' CASCADE';
-end loop;
--- Dropping all functions
-    for function_name in (
-select
-	routine_name
-from
-	information_schema.routines
-where
-	routine_type = 'FUNCTION'
-	and specific_schema = 'public')
-    loop
-        execute 'DROP FUNCTION IF EXISTS public.' || function_name || ' CASCADE';
-end loop;
--- Dropping all triggers
-    for trigger_name in (
-select
-	information_schema.triggers.trigger_name
-from
-	information_schema.triggers
-where
-	trigger_schema = 'public')
-    loop
-        execute 'DROP TRIGGER IF EXISTS public.' || information_schema.triggers.trigger_name || ' ON ' || information_schema.triggers.trigger_name || ' CASCADE';
-end loop;
-end $$;
-
 create table Fornecedora(
     forId serial primary key,
     forCnpj VARCHAR(14) not null,
@@ -52,15 +6,15 @@ create table Fornecedora(
     forTelefone VARCHAR(11) not null,
     forLogradouro VARCHAR(50) not null,
     forNumero INTEGER not null,
-    forCep VARCHAR(8) not null,
+    forCep INTEGER not null,
 	forCidade VARCHAR(50) not null,
     forEstado VARCHAR(2) not null
 );
 
 create table Produto(
-    proId serial priproNome VARCHAR(50) not null,
-   mary key,
-     proPreco FLOAT not null,
+    proId serial primary key,
+    proNome VARCHAR(50) not null,
+    proPreco FLOAT not null,
     proCategoria VARCHAR(20) not null,
     forId INTEGER not null
 );
@@ -92,7 +46,7 @@ create table transportadora (
     traTelefone VARCHAR(11) not null,
     traLogradouro VARCHAR(50) not null,
     traNumero INTEGER not null,
-    traCep INTEGER not null,
+    traCep INT not null,
     traCidade VARCHAR(50) not null,
     traEstado VARCHAR(50) not null
 );
@@ -105,8 +59,6 @@ create table auditoria (
     quantidade INTEGER,
     datahora TIMESTAMP
 );
-
-
 
 alter table Produto
 add constraint fk_produto_Fornecedora
@@ -124,25 +76,29 @@ alter table Auditoria
 add constraint fk_auditoria_produto
 foreign key (proId) references Produto(proId);
 
+create view ver_estoque_produto as
+select
+	p.proid as produto_id,
+	p.pronome,
+	p.propreco,
+	p.procategoria,
+	e.estquantidade,
+	f.forRazaoSocial,
+	e.estid,
+	e.estlocal,
+	e.estdataentrada,
+	e.estdatavalidade
+from
+	produto p
+inner join estoque e on
+	p.proid = e.proid
+inner join Fornecedora f on
+	p.forid = f.forid
+where
+	e.estquantidade > 0;
 
-CREATE VIEW ver_estoque_produto AS
-SELECT
-    p.proid AS produto_id,
-    p.pronome,
-    p.propreco,
-    p.procategoria,
-    e.estquantidade,
-    e.estlocal,
-    e.estdataentrada,
-    e.estdatavalidade
-FROM
-    produto p
-INNER JOIN estoque e ON p.proid = e.proid
-WHERE
-    e.estquantidade > 0;
-
-	
-CREATE OR REPLACE FUNCTION add_produto_estoque(
+create or replace
+function add_produto_estoque(
     p_pronome VARCHAR(50),
     p_propreco FLOAT,
     p_procategoria VARCHAR(20),
@@ -152,54 +108,105 @@ CREATE OR REPLACE FUNCTION add_produto_estoque(
     p_estdataentrada DATE,
     p_estdatavalidade DATE,
     p_funid INTEGER
-) RETURNS VOID AS $$
-DECLARE
+) returns VOID as $$
+declare
     new_produto_id INTEGER;
-    existing_produto_id INTEGER;
-BEGIN
 
-    SELECT produto.proId INTO existing_produto_id
-    FROM produto
-    INNER JOIN estoque ON produto.proId = estoque.proId
-    WHERE produto.proNome = p_pronome
-        AND estoque.estDataValidade = p_estdatavalidade
-        AND estoque.estDataEntrada = p_estdataentrada
-    LIMIT 1;
+existing_produto_id INTEGER;
 
-    IF existing_produto_id IS NOT NULL THEN
-        -- Se existir, adiciona a quantidade atual do produto
-        UPDATE estoque
-        SET estQuantidade = estQuantidade + p_estquantidade
-        WHERE proId = existing_produto_id;
-        new_produto_id := existing_produto_id;
-    ELSE
-        SELECT proId INTO new_produto_id
-        FROM produto
-        WHERE proNome = p_pronome
-        LIMIT 1;
+begin
 
-        IF new_produto_id IS NULL THEN
-            INSERT INTO produto (proNome, proPreco, proCategoria, forId)
-            VALUES (p_pronome, p_propreco, p_procategoria, p_forID)
-            RETURNING proId INTO new_produto_id;
+    select
+	produto.proId
+into
+	existing_produto_id
+from
+	produto
+inner join estoque on
+	produto.proId = estoque.proId
+where
+	produto.proNome = p_pronome
+	and estoque.estDataValidade = p_estdatavalidade
+	and estoque.estDataEntrada = p_estdataentrada
+limit 1;
 
-            INSERT INTO estoque (proId, estQuantidade, estLocal, estDataEntrada, estDataValidade)
-            VALUES (new_produto_id, p_estquantidade, p_estlocal, p_estdataentrada, p_estdatavalidade);
-        ELSE
-            INSERT INTO estoque (proId, estQuantidade, estLocal, estDataEntrada, estDataValidade)
-            VALUES (new_produto_id, p_estquantidade, p_estlocal, p_estdataentrada, p_estdatavalidade);
-        END IF;
-    END IF;
+if existing_produto_id is not null then
+-- Se existir, adiciona a quantidade atual do produto
+        update
+	estoque
+set
+	estQuantidade = estQuantidade + p_estquantidade
+where
+	proId = existing_produto_id;
 
-    -- Insere na auditoria
-    INSERT INTO auditoria (funId, proId, acao, quantidade, datahora)
-    VALUES (p_funid, new_produto_id, 1, p_estquantidade, NOW());
+new_produto_id := existing_produto_id;
+else
+        select
+	proId
+into
+	new_produto_id
+from
+	produto
+where
+	proNome = p_pronome
+limit 1;
 
-END $$ LANGUAGE plpgsql;	
+if new_produto_id is null then
+            insert
+	into
+	produto (proNome,
+	proPreco,
+	proCategoria,
+	forId)
+values (p_pronome,
+p_propreco,
+p_procategoria,
+p_forID)
+            returning proId
+into
+	new_produto_id;
 
-
-
-
+insert
+	into
+	estoque (proId,
+	estQuantidade,
+	estLocal,
+	estDataEntrada,
+	estDataValidade)
+values (new_produto_id,
+p_estquantidade,
+p_estlocal,
+p_estdataentrada,
+p_estdatavalidade);
+else
+            insert
+	into
+	estoque (proId,
+	estQuantidade,
+	estLocal,
+	estDataEntrada,
+	estDataValidade)
+values (new_produto_id,
+p_estquantidade,
+p_estlocal,
+p_estdataentrada,
+p_estdatavalidade);
+end if;
+end if;
+-- Insere na auditoria
+    insert
+	into
+	auditoria (funId,
+	proId,
+	acao,
+	quantidade,
+	datahora)
+values (p_funid,
+new_produto_id,
+1,
+p_estquantidade,
+NOW());
+end $$ language plpgsql;
 
 create or replace
 function upd_produto_estoque(
@@ -218,16 +225,22 @@ function upd_produto_estoque(
 ) returns VOID as $$
 declare
 	quantidade_atual INTEGER;
+
 begin
 	
-	SELECT estQuantidade INTO quantidade_atual
-    FROM estoque
-    WHERE estoque.proId = p_proid
-        AND estDataValidade = origem_estdatavalidade
-        AND estDataEntrada = origem_estdataentrada
-    LIMIT 1;
-   
-    update
+	select
+	estQuantidade
+into
+	quantidade_atual
+from
+	estoque
+where
+	estoque.proId = p_proid
+	and estDataValidade = origem_estdatavalidade
+	and estDataEntrada = origem_estdataentrada
+limit 1;
+
+update
 	produto
 set
 	proNome = coalesce(p_pronome,
@@ -255,33 +268,63 @@ set
 where
 	proId = p_proID;
 
-    INSERT INTO auditoria (funId, proId, acao, quantidade, datahora)
-    VALUES (p_funid, p_proid, 2, p_estquantidade - quantidade_atual, NOW());
-   
-   
-
+insert
+	into
+	auditoria (funId,
+	proId,
+	acao,
+	quantidade,
+	datahora)
+values (p_funid,
+p_proid,
+2,
+p_estquantidade - quantidade_atual,
+NOW());
 end $$ language plpgsql;
 
-
 create or replace
-function delete_produto_estoque(p_proID INTEGER,  p_estdataentrada DATE, p_estdatavalidade DATE, p_funid INTEGER) returns VOID as $$
+function delete_produto_estoque(p_proID INTEGER,
+p_estdataentrada DATE,
+p_estdatavalidade DATE,
+p_funid INTEGER) returns VOID as $$
 declare
 	quantidade_atual INTEGER;
+
 begin
 	
-	SELECT estQuantidade INTO quantidade_atual
-    FROM produto p
-    INNER JOIN estoque e ON p.proid = e.proid 
-    WHERE p.proid = p_proID
-      AND e.estDataEntrada = p_estdataentrada
-      AND e.estDataValidade = p_estdatavalidade
-    LIMIT 1;
-   
-    delete
+	select
+	estQuantidade
+into
+	quantidade_atual
+from
+	produto p
+inner join estoque e on
+	p.proid = e.proid
+where
+	p.proid = p_proID
+	and e.estDataEntrada = p_estdataentrada
+	and e.estDataValidade = p_estdatavalidade
+limit 1;
+
+delete
 from
 	estoque
 where
 	proId = p_proID;
-
-insert into auditoria(funid, proid, acao, quantidade, datahora) values (p_funid, p_proid, 3, quantidade_atual-2*quantidade_atual, NOW());
 end $$ language plpgsql;
+
+
+
+
+    private void popularComboBox() throws ClassNotFoundException {
+        TransportadoraDao transportadoraDao = new TransportadoraDaoJDBC(DB.getConnection());
+        List<Pair<Integer, String>> transportadoraes = transportadoraDao.findAllForCombobox();
+
+        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+
+        for (Pair<Integer, String> transportadora : transportadoraes) {
+            model.addElement(transportadora.getSecond());
+        }
+
+        jComboBoxTransportadoras.setModel(model);
+    }
